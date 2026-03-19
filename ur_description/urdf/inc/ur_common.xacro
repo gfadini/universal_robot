@@ -18,6 +18,87 @@
     </inertial>
   </xacro:macro>
 
+  <!--
+    Macro to generate collision geometry based on primitive type.
+    Supports: mesh, cylinder, capsule, sphere, box
+    
+    Parameters:
+    - collision_type: Type of collision geometry (mesh, cylinder, capsule, sphere, box)
+    - mesh_file: Path to mesh file (used when collision_type is mesh)
+    - radius: Radius for cylinder/capsule/sphere primitives
+    - length: Length for cylinder/capsule/box primitives
+    - box_x, box_y, box_z: Dimensions for box primitive (used when collision_type is box)
+    - origin: Origin block for transformation
+  -->
+  <xacro:macro name="collision_geometry" params="collision_type mesh_file:='' radius:=0.05 length:=0.1 box_x:=0.1 box_y:=0.1 box_z:=0.1 *origin">
+    <collision>
+      <xacro:insert_block name="origin" />
+      <geometry>
+        <xacro:if value="${collision_type == 'mesh'}">
+          <mesh filename="${mesh_file}"/>
+        </xacro:if>
+        <xacro:if value="${collision_type == 'cylinder'}">
+          <cylinder radius="${radius}" length="${length}"/>
+        </xacro:if>
+        <xacro:if value="${collision_type == 'capsule'}">
+          <!-- Capsule approximated as cylinder; actual capsule support depends on simulator -->
+          <cylinder radius="${radius}" length="${length}"/>
+        </xacro:if>
+        <xacro:if value="${collision_type == 'sphere'}">
+          <sphere radius="${radius}"/>
+        </xacro:if>
+        <xacro:if value="${collision_type == 'box'}">
+          <box size="${box_x} ${box_y} ${box_z}"/>
+        </xacro:if>
+      </geometry>
+    </collision>
+  </xacro:macro>
+
+  <!--
+    Macro for capsule collision using multiple primitives (cylinder + spheres at ends).
+    Provides a more accurate capsule approximation for simulators that don't support native capsules.
+    
+    Parameters:
+    - radius: Radius of the capsule
+    - length: Length of the cylinder portion (total capsule length = length + 2*radius)
+    - x, y, z: Position of the capsule center in link frame
+    - roll, pitch, yaw: Orientation of the capsule in link frame (capsule aligned with local Z-axis)
+  -->
+  <xacro:macro name="capsule_collision" params="radius length x:=0 y:=0 z:=0 roll:=0 pitch:=0 yaw:=0">
+    <!-- Compute sphere positions at capsule ends (along local Z-axis, accounting for orientation) -->
+    <!-- For a capsule oriented with local Z-axis: endpoints are at ±length/2 along that axis -->
+    <!-- After rotation by (roll, pitch, yaw), the Z-axis unit vector becomes:
+         z_x = -sin(pitch)
+         z_y = sin(roll)*cos(pitch) 
+         z_z = cos(roll)*cos(pitch)
+    -->
+    <xacro:property name="half_len" value="${length/2}"/>
+    <xacro:property name="z_axis_x" value="${-sin(pitch)}"/>
+    <xacro:property name="z_axis_y" value="${sin(roll)*cos(pitch)}"/>
+    <xacro:property name="z_axis_z" value="${cos(roll)*cos(pitch)}"/>
+    
+    <!-- Main cylinder body -->
+    <collision>
+      <origin xyz="${x} ${y} ${z}" rpy="${roll} ${pitch} ${yaw}"/>
+      <geometry>
+        <cylinder radius="${radius}" length="${length}"/>
+      </geometry>
+    </collision>
+    <!-- Top hemisphere (approximated as sphere) at +length/2 along capsule axis -->
+    <collision>
+      <origin xyz="${x + half_len * z_axis_x} ${y + half_len * z_axis_y} ${z + half_len * z_axis_z}" rpy="0 0 0"/>
+      <geometry>
+        <sphere radius="${radius}"/>
+      </geometry>
+    </collision>
+    <!-- Bottom hemisphere (approximated as sphere) at -length/2 along capsule axis -->
+    <collision>
+      <origin xyz="${x - half_len * z_axis_x} ${y - half_len * z_axis_y} ${z - half_len * z_axis_z}" rpy="0 0 0"/>
+      <geometry>
+        <sphere radius="${radius}"/>
+      </geometry>
+    </collision>
+  </xacro:macro>
 
   <!--
     NOTE: this macro stores the defined properties in the scope of the caller.
@@ -203,12 +284,21 @@
     <xacro:property name="wrist_3_inertia_iyz" value="${prop_wrist_3_inertia['iyz']}" scope="parent"/>
     <xacro:property name="wrist_3_inertia_izz" value="${prop_wrist_3_inertia['izz']}" scope="parent"/>
 
-    <!-- cylinder radius -->
-    <xacro:property name="shoulder_radius" value="${sec_inertia_parameters['shoulder_radius']}" scope="parent"/>
-    <xacro:property name="upper_arm_radius" value="${sec_inertia_parameters['upper_arm_radius']}" scope="parent"/>
-    <xacro:property name="elbow_radius" value="${sec_inertia_parameters['elbow_radius']}" scope="parent"/>
-    <xacro:property name="forearm_radius" value="${sec_inertia_parameters['forearm_radius']}" scope="parent"/>
-    <xacro:property name="wrist_radius" value="${sec_inertia_parameters['wrist_radius']}" scope="parent"/>
+    <!-- cylinder radius for primitive collision geometries -->
+    <!-- Handle legacy 'x' prefix in values by stripping it if present -->
+    <xacro:property name="raw_shoulder_radius" value="${sec_inertia_parameters['shoulder_radius']}" />
+    <xacro:property name="raw_upper_arm_radius" value="${sec_inertia_parameters['upper_arm_radius']}" />
+    <xacro:property name="raw_elbow_radius" value="${sec_inertia_parameters['elbow_radius']}" />
+    <xacro:property name="raw_forearm_radius" value="${sec_inertia_parameters['forearm_radius']}" />
+    <xacro:property name="raw_wrist_radius" value="${sec_inertia_parameters['wrist_radius']}" />
+    
+    <!-- Convert string values to float, stripping 'x' prefix if present -->
+    <xacro:property name="shoulder_radius" value="${float(str(raw_shoulder_radius).replace('x', ''))}" scope="parent"/>
+    <xacro:property name="upper_arm_radius" value="${float(str(raw_upper_arm_radius).replace('x', ''))}" scope="parent"/>
+    <xacro:property name="elbow_radius" value="${float(str(raw_elbow_radius).replace('x', ''))}" scope="parent"/>
+    <xacro:property name="forearm_radius" value="${float(str(raw_forearm_radius).replace('x', ''))}" scope="parent"/>
+    <xacro:property name="wrist_radius" value="${float(str(raw_wrist_radius).replace('x', ''))}" scope="parent"/>
+    
     <!-- Mesh files -->
     <xacro:property name="base_mesh" value="${sec_mesh_files['base']}"/>
     <xacro:property name="base_visual_mesh" value="${base_mesh['visual']['mesh']}" scope="parent"/>

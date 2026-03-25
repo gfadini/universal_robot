@@ -1,0 +1,172 @@
+<?xml version="1.0"?>
+<!-- Local copy of robotiq_hande with resolved mesh paths for xacrodoc -->
+<robot name="robotiq_hande" xmlns:xacro="http://ros.org/wiki/xacro">
+  <!-- meshes_path must be passed explicitly or set via arg when using xacrodoc -->
+  <xacro:arg name="robotiq_meshes_path" default=""/>
+  
+  <!-- Hand-E approximate dimensions (meters) -->
+  <xacro:property name="hande_base_length" value="0.090"/>
+  <xacro:property name="hande_base_width" value="0.090"/>
+  <xacro:property name="hande_base_height" value="0.055"/>
+  <xacro:property name="hande_base_x_offset" value="0.045"/>  <!-- center along gripper axis -->
+  <xacro:property name="hande_finger_length" value="0.045"/>
+  <xacro:property name="hande_finger_width" value="0.009"/>
+  <xacro:property name="hande_finger_height" value="0.020"/>
+  
+  <xacro:macro name="robotiq_hande_local" params="prefix parent *origin meshes_path:=$(arg robotiq_meshes_path) collision_type:=mesh">
+    <joint name="${prefix}robotiq_hande_base_joint" type="fixed">
+      <parent link="${parent}"/>
+      <child link="${prefix}robotiq_hande_base_link"/>
+      <xacro:insert_block name="origin"/>
+    </joint>
+
+    <link name="${prefix}robotiq_hande_base_link">
+      <inertial>
+        <origin xyz="0 0 0.04607" rpy="${pi/2} 0 ${pi/2}" />
+        <mass value="0.86387" />
+        <inertia ixx="1017560E-9" ixy="0" ixz="2235E-9" iyy="1028041E-9" iyz="0" izz="489810E-9" />
+      </inertial>
+      <visual>
+        <origin xyz="0 0 0" rpy="${pi/2} 0 ${pi/2}" />
+        <geometry>
+          <mesh filename="file://${meshes_path}/hand-e.dae" scale="0.001 0.001 0.001"/>
+        </geometry>
+        <material name="Gazebo/Black">
+          <color rgba="0.1 0.1 0.1 1" />
+        </material>
+      </visual>
+      <!-- Collision: mesh -->
+      <xacro:if value="${collision_type == 'mesh'}">
+        <collision>
+          <origin xyz="0 0 0" rpy="${pi/2} 0 ${pi/2}" />
+          <geometry>
+            <mesh filename="file://${meshes_path}/hand-e-collision.dae" scale="0.001 0.001 0.001"/>
+          </geometry>
+        </collision>
+      </xacro:if>
+      <!-- Collision: box -->
+      <xacro:if value="${collision_type == 'box'}">
+        <collision>
+          <origin xyz="${hande_base_x_offset} 0 0" rpy="0 0 0"/>
+          <geometry>
+            <box size="${hande_base_length} ${hande_base_width} ${hande_base_height}"/>
+          </geometry>
+        </collision>
+      </xacro:if>
+      <!-- Collision: cylinder -->
+      <xacro:if value="${collision_type == 'cylinder'}">
+        <collision>
+          <origin xyz="${hande_base_x_offset} 0 0" rpy="0 ${pi/2} 0"/>
+          <geometry>
+            <cylinder radius="${hande_base_width/2}" length="${hande_base_length}"/>
+          </geometry>
+        </collision>
+      </xacro:if>
+      <!-- Collision: sphere -->
+      <xacro:if value="${collision_type == 'sphere'}">
+        <collision>
+          <origin xyz="${hande_base_x_offset} 0 0" rpy="0 0 0"/>
+          <geometry>
+            <sphere radius="${hande_base_width/2}"/>
+          </geometry>
+        </collision>
+      </xacro:if>
+    </link>
+
+    <link name="${prefix}robotiq_hande_left_finger">
+      <inertial>
+        <origin xyz="0.02262 -0.00759 0.00738" rpy="${pi/2} 0 ${pi/2}"/>
+        <mass value="0.03804"/>
+        <inertia ixx="13567E-9" ixy="1849E-9" ixz="3622E-9" iyy="15784E-9" iyz="3616E-9" izz="7478E-9"/>
+      </inertial>
+      <visual>
+        <origin xyz="0 0 0" rpy="${pi/2} 0 ${pi/2}"/>
+        <geometry>
+          <mesh filename="file://${meshes_path}/hand-e_finger_1.dae" scale="0.001 0.001 0.001"/>
+        </geometry>
+        <material name="Gazebo/Grey">
+          <color rgba="0.1 0.1 0.1 1"/>
+        </material>
+      </visual>
+      <!-- Collision: mesh -->
+      <xacro:if value="${collision_type == 'mesh'}">
+        <collision>
+          <origin xyz="0 0 0" rpy="${pi/2} 0 ${pi/2}"/>
+          <geometry>
+            <mesh filename="file://${meshes_path}/finger_1-collision.dae" scale="0.001 0.001 0.001"/>
+          </geometry>
+        </collision>
+      </xacro:if>
+      <!-- Collision: box/cylinder/sphere (simplified finger) -->
+      <xacro:unless value="${collision_type == 'mesh'}">
+        <collision>
+          <origin xyz="${hande_finger_length/2} ${0.025 + hande_finger_width/2} 0" rpy="0 0 0"/>
+          <geometry>
+            <box size="${hande_finger_length} ${hande_finger_width} ${hande_finger_height}"/>
+          </geometry>
+        </collision>
+      </xacro:unless>
+    </link>
+
+    <link name="${prefix}robotiq_hande_right_finger">
+      <inertial>
+        <origin xyz="-0.02262 0.00759 0.00738" rpy="${pi/2} 0 ${pi/2}"/>
+        <mass value="0.03804"/>
+        <inertia ixx="13567E-9" ixy="1849E-9" ixz="-3622E-9" iyy="15784E-9" iyz="-3616E-9" izz="7478E-9"/>
+      </inertial>
+      <visual>
+        <origin xyz="0 0 0" rpy="${pi/2} 0 ${pi/2}"/>
+        <geometry>
+          <mesh filename="file://${meshes_path}/hand-e_finger_2.dae" scale="0.001 0.001 0.001"/>
+        </geometry>
+        <material name="Gazebo/Grey">
+          <color rgba="0.1 0.1 0.1 1"/>
+        </material>
+      </visual>
+      <!-- Collision: mesh -->
+      <xacro:if value="${collision_type == 'mesh'}">
+        <collision>
+          <origin xyz="0 0 0" rpy="${pi/2} 0 ${pi/2}"/>
+          <geometry>
+            <mesh filename="file://${meshes_path}/finger_2-collision.dae" scale="0.001 0.001 0.001"/>
+          </geometry>
+        </collision>
+      </xacro:if>
+      <!-- Collision: box/cylinder/sphere (simplified finger) -->
+      <xacro:unless value="${collision_type == 'mesh'}">
+        <collision>
+          <origin xyz="${hande_finger_length/2} ${-0.025 - hande_finger_width/2} 0" rpy="0 0 0"/>
+          <geometry>
+            <box size="${hande_finger_length} ${hande_finger_width} ${hande_finger_height}"/>
+          </geometry>
+        </collision>
+      </xacro:unless>
+    </link>
+
+    <joint name="${prefix}robotiq_hande_joint_finger" type="prismatic">
+      <origin xyz="0.099 0 0" rpy="0 0 0"/>
+      <parent link="${prefix}robotiq_hande_base_link"/>
+      <child link="${prefix}robotiq_hande_left_finger"/>
+      <axis xyz="0 -1 0"/>
+      <limit effort="130" lower="0" upper="0.025" velocity="0.15"/>
+    </joint>
+
+    <joint name="${prefix}robotiq_hande_base_to_right_finger" type="prismatic">
+      <origin xyz="0.099 0 0" rpy="0 0 0"/>
+      <parent link="${prefix}robotiq_hande_base_link"/>
+      <child link="${prefix}robotiq_hande_right_finger"/>
+      <axis xyz="0 1 0"/>
+      <limit effort="130" lower="0" upper="0.025" velocity="0.15"/>
+      <mimic joint="${prefix}robotiq_hande_joint_finger" multiplier="1" offset="0"/>
+    </joint>
+  </xacro:macro>
+
+  <!-- Standalone test: instantiate gripper attached to a world link -->
+  <xacro:arg name="standalone" default="false"/>
+  <xacro:if value="$(arg standalone)">
+    <link name="world"/>
+    <xacro:robotiq_hande_local prefix="" parent="world">
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+    </xacro:robotiq_hande_local>
+  </xacro:if>
+</robot>

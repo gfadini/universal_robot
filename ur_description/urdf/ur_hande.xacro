@@ -1,0 +1,69 @@
+<?xml version="1.0"?>
+<robot xmlns:xacro="http://wiki.ros.org/xacro" name="ur_hande">
+  <!--
+    Parameterized Robot + Hand-E Composition
+    
+    Usage with xacrodoc:
+      from xacrodoc import XacroDoc
+      doc = XacroDoc.from_file('ur_hande.xacro', subargs={'robot': 'ur5e'})
+      print(doc.to_urdf_string())
+    
+    Change collision type:
+      doc = XacroDoc.from_file('ur_hande.xacro', subargs={'robot': 'ur5e', 'collision': 'capsule'})
+  -->
+
+  <!-- Arguments -->
+  <xacro:arg name="robot" default="ur10e"/>
+  <xacro:arg name="collision" default="cylinder"/>
+  <xacro:arg name="ur_path" default="."/>
+  <xacro:arg name="robotiq_meshes_path" default="../meshes/robotiq_hande"/>
+  <xacro:arg name="offset_x" default="0"/>
+  <xacro:arg name="offset_y" default="0"/>
+  <xacro:arg name="offset_z" default="0"/>
+  <xacro:arg name="offset_roll" default="0"/>
+  <xacro:arg name="offset_pitch" default="0"/>
+  <xacro:arg name="offset_yaw" default="0"/>
+
+  <!-- ============== ROBOT (select by argument) ============== -->
+  <xacro:if value="${'$(arg robot)' == 'ur3'}">
+    <xacro:include filename="$(arg ur_path)/urdf/inc/ur3_macro.xacro"/>
+    <xacro:ur3_robot prefix="" collision_type="$(arg collision)"/>
+  </xacro:if>
+  <xacro:if value="${'$(arg robot)' == 'ur3e'}">
+    <xacro:include filename="$(arg ur_path)/urdf/inc/ur3e_macro.xacro"/>
+    <xacro:ur3e_robot prefix="" collision_type="$(arg collision)"/>
+  </xacro:if>
+  <xacro:if value="${'$(arg robot)' == 'ur5'}">
+    <xacro:include filename="$(arg ur_path)/urdf/inc/ur5_macro.xacro"/>
+    <xacro:ur5_robot prefix="" collision_type="$(arg collision)"/>
+  </xacro:if>
+  <xacro:if value="${'$(arg robot)' == 'ur5e'}">
+    <xacro:include filename="$(arg ur_path)/urdf/inc/ur5e_macro.xacro"/>
+    <xacro:ur5e_robot prefix="" collision_type="$(arg collision)"/>
+  </xacro:if>
+  <xacro:if value="${'$(arg robot)' == 'ur10'}">
+    <xacro:include filename="$(arg ur_path)/urdf/inc/ur10_macro.xacro"/>
+    <xacro:ur10_robot prefix="" collision_type="$(arg collision)"/>
+  </xacro:if>
+  <xacro:if value="${'$(arg robot)' == 'ur10e'}">
+    <xacro:include filename="$(arg ur_path)/urdf/inc/ur10e_macro.xacro"/>
+    <xacro:ur10e_robot prefix="" collision_type="$(arg collision)"/>
+  </xacro:if>
+  <xacro:if value="${'$(arg robot)' == 'ur16e'}">
+    <xacro:include filename="$(arg ur_path)/urdf/inc/ur16e_macro.xacro"/>
+    <xacro:ur16e_robot prefix="" collision_type="$(arg collision)"/>
+  </xacro:if>
+  <xacro:if value="${'$(arg robot)' == 'ur20'}">
+    <xacro:include filename="$(arg ur_path)/urdf/inc/ur20_macro.xacro"/>
+    <xacro:ur20_robot prefix="" collision_type="$(arg collision)"/>
+  </xacro:if>
+
+  <!-- ============== GRIPPER ============== -->
+  <xacro:include filename="$(arg ur_path)/urdf/inc/robotiq_hande.xacro"/>
+  
+  <xacro:robotiq_hande_local prefix="" parent="tool0" meshes_path="$(arg robotiq_meshes_path)" collision_type="$(arg collision)">
+    <origin xyz="$(arg offset_x) $(arg offset_y) $(arg offset_z)" 
+            rpy="$(arg offset_roll) $(arg offset_pitch) $(arg offset_yaw)"/>
+  </xacro:robotiq_hande_local>
+
+</robot>

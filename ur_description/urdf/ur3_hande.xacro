@@ -1,0 +1,26 @@
+<?xml version="1.0"?>
+<robot xmlns:xacro="http://wiki.ros.org/xacro" name="ur3e_hande">
+  <!--
+    Simple Robot + Gripper Composition
+    
+    Pattern:
+      1. Include robot xacro and instantiate
+      2. Include gripper xacro and attach with offset
+    
+    Usage:
+      python3 -c "from xacrodoc import XacroDoc; print(XacroDoc.from_file('ur5e_hande_simple.xacro').to_urdf_string())" > ur5e_hande.urdf
+  -->
+
+  <!-- ============== ROBOT ============== -->
+  <xacro:include filename="inc/ur3e_macro.xacro"/>
+  <xacro:ur3e_robot prefix="" collision_type="cylinder"/>
+
+  <!-- ============== GRIPPER ============== -->
+  <xacro:include filename="inc/robotiq_hande.xacro"/>
+  
+  <!-- Attach gripper to tool0 (collision_type: mesh, box, cylinder, sphere) -->
+  <xacro:robotiq_hande_local prefix="" parent="tool0" meshes_path="../meshes/robotiq_hande" collision_type="box">
+    <origin xyz="0 0 0" rpy="0 ${-pi/2} 0"/>
+  </xacro:robotiq_hande_local>
+
+</robot>

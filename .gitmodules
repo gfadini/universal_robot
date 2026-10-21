@@ -1,0 +1,6 @@
+[submodule "ur_description/grippers/robotiq_hande_description"]
+	path = ur_description/grippers/robotiq_hande_description
+	url = git@github.com:gfadini/robotiq_hande_description.git
+[submodule "ur_description/grippers/inspire_description"]
+	path = ur_description/grippers/inspire_description
+	url = git@github.com:gfadini/inspire_description.git

@@ -16,11 +16,11 @@
   <xacro:ur5e_robot prefix="" collision_type="cylinder"/>
 
   <!-- ============== GRIPPER ============== -->
-  <xacro:include filename="inc/robotiq_hande.xacro"/>
+  <xacro:include filename="../grippers/robotiq_hande_description/gripper.xacro"/>
   
   <!-- Attach gripper to tool0 (collision_type: mesh, box, cylinder, sphere) -->
-  <xacro:robotiq_hande_local prefix="" parent="tool0" meshes_path="../meshes/robotiq_hande" collision_type="box">
+  <xacro:robotiq_hande_gripper prefix="" parent="tool0" meshes_path="../grippers/robotiq_hande_description/meshes" collision_type="box">
     <origin xyz="0 0 0" rpy="0 ${-pi/2} 0"/>
-  </xacro:robotiq_hande_local>
+  </xacro:robotiq_hande_gripper>
 
 </robot>

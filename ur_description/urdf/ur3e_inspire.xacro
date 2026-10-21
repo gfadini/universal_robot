@@ -1,0 +1,38 @@
+<?xml version="1.0"?>
+<robot xmlns:xacro="http://wiki.ros.org/xacro" name="ur3e_inspire">
+  <!--
+    Simple Robot + Hand Composition
+
+    Pattern:
+      1. Include robot xacro and instantiate
+      2. Include hand xacro and attach with offset
+
+    Usage (from urdf/; the hand's meshes are package:// URIs, so xacrodoc
+    must be told where inspire_description is):
+      python3 -c "from xacrodoc import XacroDoc, packages; packages.look_in(['../grippers']); print(XacroDoc.from_file('ur3e_inspire.xacro', subargs={'side': 'left'}).to_urdf_string())" > ur3e_inspire.urdf
+  -->
+
+  <!-- left | right -->
+  <xacro:arg name="side" default="right"/>
+  <!-- tool0 -> hand_base_link: mounting distance and rotation of the flange adapter -->
+  <xacro:arg name="offset_x" default="0"/>
+  <xacro:arg name="offset_y" default="0"/>
+  <xacro:arg name="offset_z" default="0"/>
+  <xacro:arg name="offset_roll" default="0"/>
+  <xacro:arg name="offset_pitch" default="0"/>
+  <xacro:arg name="offset_yaw" default="0"/>
+
+  <!-- ============== ROBOT ============== -->
+  <xacro:include filename="inc/ur3e_macro.xacro"/>
+  <xacro:ur3e_robot prefix="" collision_type="cylinder"/>
+
+  <!-- ============== HAND ============== -->
+  <xacro:include filename="../grippers/inspire_description/gripper.xacro"/>
+
+  <!-- Attach hand to tool0 (frames hand_*, collision is always mesh) -->
+  <xacro:inspire_gripper prefix="" parent="tool0" side="$(arg side)">
+    <origin xyz="$(arg offset_x) $(arg offset_y) $(arg offset_z)"
+            rpy="$(arg offset_roll) $(arg offset_pitch) $(arg offset_yaw)"/>
+  </xacro:inspire_gripper>
+
+</robot>

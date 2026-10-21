@@ -1,0 +1,46 @@
+<?xml version="1.0"?>
+<robot xmlns:xacro="http://wiki.ros.org/xacro" name="ur_gripper">
+  <!--
+    Parameterized Robot + Gripper Composition: any UR arm, any gripper from
+    grippers/ on tool0. Arguments and usage: grippers/README.md.
+
+      XacroDoc.from_file('urdf/ur_gripper.xacro', subargs={'robot': 'ur5e', 'gripper': 'robotiq_hande'})
+  -->
+
+  <!-- Arguments -->
+  <xacro:arg name="robot" default="ur10e"/>
+  <xacro:arg name="collision" default="cylinder"/>
+  <xacro:arg name="ur_path" default="."/>
+
+  <xacro:arg name="gripper" default="robotiq_hande"/>
+  <xacro:arg name="gripper_file" default="$(arg ur_path)/grippers/$(arg gripper)_description/gripper.xacro"/>
+  <xacro:arg name="gripper_macro" default="$(arg gripper)_gripper"/>
+  <xacro:arg name="gripper_meshes_path" default="$(arg ur_path)/grippers/$(arg gripper)_description/meshes"/>
+  <xacro:arg name="gripper_collision" default="$(arg collision)"/>
+  <xacro:arg name="gripper_prefix" default=""/>
+  <!-- left | right, for hands (inspire); grippers without a side ignore it -->
+  <xacro:arg name="side" default="right"/>
+  <!-- tool0 -> gripper base: mounting distance and rotation of the adapter -->
+  <xacro:arg name="offset_x" default="0"/>
+  <xacro:arg name="offset_y" default="0"/>
+  <xacro:arg name="offset_z" default="0"/>
+  <xacro:arg name="offset_roll" default="0"/>
+  <xacro:arg name="offset_pitch" default="0"/>
+  <xacro:arg name="offset_yaw" default="0"/>
+
+  <!-- ============== ROBOT (select by argument) ============== -->
+  <xacro:include filename="$(arg ur_path)/urdf/inc/$(arg robot)_macro.xacro"/>
+  <xacro:call macro="$(arg robot)_robot" prefix="" collision_type="$(arg collision)"/>
+
+  <!-- ============== GRIPPER (select by argument) ============== -->
+  <xacro:unless value="${'$(arg gripper)' == 'none'}">
+    <xacro:include filename="$(arg gripper_file)"/>
+
+    <xacro:call macro="$(arg gripper_macro)" prefix="$(arg gripper_prefix)" parent="tool0"
+                meshes_path="$(arg gripper_meshes_path)" collision_type="$(arg gripper_collision)">
+      <origin xyz="$(arg offset_x) $(arg offset_y) $(arg offset_z)"
+              rpy="$(arg offset_roll) $(arg offset_pitch) $(arg offset_yaw)"/>
+    </xacro:call>
+  </xacro:unless>
+
+</robot>

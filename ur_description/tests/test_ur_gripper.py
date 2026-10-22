@@ -7,6 +7,9 @@ Check that urdf/ur_gripper.xacro composes UR arms with the grippers in grippers/
 - the Inspire hand switches between left and right with side:=, and rejects
   anything else;
 - the gripper base sits at tool0 composed with the offset_* mount transform;
+- the Inspire flange adapter (default) puts the hand 52 mm out, adapter:=false on tool0;
+- a sensor from grippers/ sits on tool0 (rotated by sensor_yaw) and every gripper
+  moves onto its ft_frame;
 - the specialized urdf/ur3e_inspire.xacro gives the same model as ur_gripper.xacro.
 Needs: numpy, pinocchio, xacrodoc. Each URDF is built in a fresh process,
 since a failed xacro run leaves xacro's global state dirty.
@@ -34,8 +37,10 @@ packages.look_in([sys.argv[1]])
 print(XacroDoc.from_file(sys.argv[2], subargs=json.loads(sys.argv[3])).to_urdf_string())
 """
 
-# gripper name -> base link of the gripper (with an empty gripper_prefix)
-GRIPPERS = {"robotiq_hande": "robotiq_hande_base_link", "inspire": "hand_base_link"}
+# gripper name -> the gripper's link attached to the mount (with an empty gripper_prefix);
+# the Inspire hand mounts through its flange adapter by default
+GRIPPERS = {"robotiq_hande": "robotiq_hande_base_link", "inspire": "hand_adapter_link"}
+SENSORS = ["bota_sensone"]
 
 
 def build(xacro: str = "urdf/ur_gripper.xacro", cwd: Path = UR_DESCRIPTION, **subargs: str) -> str:
@@ -105,6 +110,31 @@ def test_mount_offset() -> None:
         assert error < 1e-9, f"{gripper}: mount transform off by {error}"
 
 
+def test_inspire_adapter() -> None:
+    with_adapter = tool0_to(build(robot="ur3e", gripper="inspire"), "hand_base_link")
+    assert np.allclose(with_adapter.homogeneous, pin.SE3(np.eye(3), np.array([0, 0, 0.052])).homogeneous)
+    urdf = build(robot="ur3e", gripper="inspire", adapter="false")
+    assert "hand_adapter_link" not in {link.get("name") for link in ET.fromstring(urdf).iter("link")}
+    assert np.allclose(tool0_to(urdf, "hand_base_link").homogeneous, np.eye(4)), "adapter:=false: hand not at tool0"
+
+
+def test_sensor_flange() -> None:
+    yaw = -np.pi / 2
+    for sensor in SENSORS:
+        urdf = build(robot="ur5e", gripper="none", sensor=sensor, sensor_yaw=repr(yaw))
+        missing = [str(p) for p in mesh_files(urdf) if not p.is_file() or p.stat().st_size < 200]
+        assert not missing, f"{sensor}: missing meshes {missing[:3]}"
+        rotation = pin.rpy.rpyToMatrix(0, 0, yaw)
+        assert np.allclose(tool0_to(urdf, "ft_sensor_link").homogeneous, pin.SE3(rotation, np.zeros(3)).homogeneous)
+        ft_frame = tool0_to(urdf, "ft_frame")
+        assert np.allclose(ft_frame.rotation, rotation) and ft_frame.translation[2] > 0, f"{sensor}: ft_frame"
+        # every gripper moves from tool0 to the sensor's ft_frame
+        for gripper, mount_link in GRIPPERS.items():
+            urdf = build(robot="ur5e", gripper=gripper, sensor=sensor)
+            assert np.allclose(tool0_to(urdf, mount_link).homogeneous, tool0_to(urdf, "ft_frame").homogeneous), \
+                f"{sensor} + {gripper}: gripper not on ft_frame"
+
+
 def test_ur3e_inspire_matches_ur_gripper() -> None:
     def body(urdf: str) -> str:  # without the robot name and the header comment
         return re.sub(r'<robot name="[^"]+">', "", re.sub(r"<!--.*?-->", "", urdf, flags=re.S))
@@ -117,8 +147,8 @@ def test_ur3e_inspire_matches_ur_gripper() -> None:
 
 
 if __name__ == "__main__":
-    for test in (test_grippers_build_with_meshes, test_inspire_side, test_mount_offset,
-                 test_ur3e_inspire_matches_ur_gripper):
+    for test in (test_grippers_build_with_meshes, test_inspire_side, test_mount_offset, test_inspire_adapter,
+                 test_sensor_flange, test_ur3e_inspire_matches_ur_gripper):
         test()
         print(f"{test.__name__}: ok")
     print("All checks passed.")

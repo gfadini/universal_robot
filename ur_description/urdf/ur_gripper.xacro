@@ -2,7 +2,9 @@
 <robot xmlns:xacro="http://wiki.ros.org/xacro" name="ur_gripper">
   <!--
     Parameterized Robot + Gripper Composition: any UR arm, any gripper from
-    grippers/ on tool0. Arguments and usage: grippers/README.md.
+    grippers/ on tool0, optionally with a force-torque sensor from grippers/
+    as the first flange on tool0, the gripper then on the sensor.
+    Arguments and usage: grippers/README.md.
 
       XacroDoc.from_file('urdf/ur_gripper.xacro', subargs={'robot': 'ur5e', 'gripper': 'robotiq_hande'})
   -->
@@ -28,9 +30,23 @@
   <xacro:arg name="offset_pitch" default="0"/>
   <xacro:arg name="offset_yaw" default="0"/>
 
+  <!-- Force-torque sensor as the first flange on tool0 (none | bota_sensone), the gripper then mounts
+       on its ft_frame; sensor_yaw rotates it about the flange axis, i.e. where its cable points.
+       Grippers read both args themselves (gripper-specific args), without a gripper it is added here. -->
+  <xacro:arg name="sensor" default="none"/>
+  <xacro:arg name="sensor_yaw" default="0"/>
+
   <!-- ============== ROBOT (select by argument) ============== -->
   <xacro:include filename="$(arg ur_path)/urdf/inc/$(arg robot)_macro.xacro"/>
   <xacro:call macro="$(arg robot)_robot" prefix="" collision_type="$(arg collision)"/>
+
+  <!-- ============== SENSOR, without a gripper ============== -->
+  <xacro:if value="${'$(arg gripper)' == 'none' and '$(arg sensor)' == 'bota_sensone'}">
+    <xacro:include filename="$(find bota_sensone_description)/sensor.xacro"/>
+    <xacro:bota_sensone_sensor prefix="" parent="tool0">
+      <origin xyz="0 0 0" rpy="0 0 $(arg sensor_yaw)"/>
+    </xacro:bota_sensone_sensor>
+  </xacro:if>
 
   <!-- ============== GRIPPER (select by argument) ============== -->
   <xacro:unless value="${'$(arg gripper)' == 'none'}">

@@ -4,3 +4,6 @@
 [submodule "ur_description/grippers/inspire_description"]
 	path = ur_description/grippers/inspire_description
 	url = git@github.com:gfadini/inspire_description.git
+[submodule "ur_description/grippers/bota_sensone_description"]
+	path = ur_description/grippers/bota_sensone_description
+	url = git@github.com:gfadini/bota_sensone_description.git

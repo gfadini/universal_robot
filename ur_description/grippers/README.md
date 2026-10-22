@@ -29,6 +29,7 @@ XacroDoc.from_file('urdf/ur_gripper.xacro', subargs={
 | `gripper_collision` | `collision` | gripper collision type |
 | `gripper_prefix` | empty | prepended to the gripper's link and joint names |
 | `side` | `right` | `left` / `right`, for hands; other grippers ignore it |
+| `adapter` | `true` | Inspire flange adapter between `tool0` and the hand (hand base 52 mm above `tool0`), the offsets then place the adapter; `false` mounts the hand directly |
 | `offset_{x,y,z,roll,pitch,yaw}` | 0 | tool0 → gripper base, i.e. the flange adapter |
 | `gripper_file`, `gripper_macro`, `gripper_meshes_path` | from `gripper` | for a gripper outside this folder |
 | `ur_path` | `.` | the `ur_description` folder, when not running from it |

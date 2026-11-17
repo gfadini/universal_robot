@@ -29,7 +29,7 @@ XacroDoc.from_file('urdf/ur_gripper.xacro', subargs={
 |---|---|---|
 | `robot` | `ur10e` | any `urdf/inc/<robot>_macro.xacro` |
 | `collision` | `cylinder` | arm collision type |
-| `gripper` | `robotiq_hande` | `robotiq_hande`, `inspire`, or `none` for the bare arm |
+| `gripper` | `robotiq_hande` | `robotiq_hande`, `inspire`, `ctag2f90d`, or `none` for the bare arm |
 | `gripper_collision` | `collision` | gripper collision type |
 | `gripper_prefix` | empty | prepended to the gripper's link and joint names |
 | `side` | `right` | `left` / `right`, for hands; other grippers ignore it |
@@ -43,7 +43,8 @@ XacroDoc.from_file('urdf/ur_gripper.xacro', subargs={
 `urdf/ur3_hande.xacro`, `ur5e_hande.xacro` and `ur3e_inspire.xacro` are the
 same compositions with a fixed robot and gripper. `tests/test_ur_gripper.py`
 checks `ur_gripper.xacro` with every gripper and sensor, and that `ur3e_inspire.xacro`
-matches it. The sensor is described in `bota_sensone_description/README.md`.
+matches it. The sensor is described in `bota_sensone_description/README.md`, the
+Changingtek CTAG2F90-D in `ctag2f90d_description/README.md`.
 
 ## Interface
 

@@ -39,7 +39,8 @@ print(XacroDoc.from_file(sys.argv[2], subargs=json.loads(sys.argv[3])).to_urdf_s
 
 # gripper name -> the gripper's link attached to the mount (with an empty gripper_prefix);
 # the Inspire hand mounts through its flange adapter by default
-GRIPPERS = {"robotiq_hande": "robotiq_hande_base_link", "inspire": "hand_adapter_link"}
+GRIPPERS = {"robotiq_hande": "robotiq_hande_base_link", "inspire": "hand_adapter_link",
+            "ctag2f90d": "ctag2f90d_base_link"}
 SENSORS = ["bota_sensone"]
 
 

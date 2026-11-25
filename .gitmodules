@@ -7,3 +7,6 @@
 [submodule "ur_description/grippers/bota_sensone_description"]
 	path = ur_description/grippers/bota_sensone_description
 	url = git@github.com:gfadini/bota_sensone_description.git
+[submodule "ur_description/grippers/ctag2f90d_description"]
+	path = ur_description/grippers/ctag2f90d_description
+	url = git@github.com:gfadini/ctag2f90d_description.git
